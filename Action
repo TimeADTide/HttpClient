@@ -1,0 +1,71 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+
+
+/**
+ * @Description
+ * @Authors smj
+ * @Date 2024/8/21 16:14
+ * @Version
+ */
+public class Test1 {
+
+
+    public static void action(String urlString, String param, String expectedValue) {
+        try {
+            // 创建 URL 对象
+            HttpURLConnection connection = getHttpURLConnection(urlString);
+
+            // 创建 URL 编码的查询参数
+            StringBuilder params = new StringBuilder();
+            params.append("plainCode=").append(param).append("&");
+            params.append("secretCode=");
+
+            // 发送请求参数
+            try (OutputStream os = connection.getOutputStream()) {
+                os.write(params.toString().getBytes());
+                os.flush();
+            }
+            // 获取响应
+            StringBuilder response = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    response.append(line);
+                }
+            }
+            // 验证返回的文本
+            if (response.toString().contains(expectedValue)) {
+                System.out.println("Validation passed: Response contains the expected value." + param);
+            } else {
+                System.out.println(param);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static HttpURLConnection getHttpURLConnection(String urlString) throws IOException {
+        URL url = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        // 设置请求方法和头部
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+        connection.setRequestProperty("Cookie", ""); // 添加 Cookie 头部
+        connection.setDoOutput(true);
+        return connection;
+    }
+
+
+    public static void main(String[] args) throws InterruptedException {
+        action("url", "388001420951143723", "最终想验证的值");
+    }
+
+
+}
